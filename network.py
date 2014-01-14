@@ -1,6 +1,5 @@
 import re
-import urllib
-import urllib2
+import urllib.parse, urllib.request
 
 # Address of the login web page
 captivePortailUrl = "https://portail-promologis-lan.insa-toulouse.fr"\
@@ -14,13 +13,13 @@ def connect(username, password):
                   'auth_pass':password,
                   'redirurl':'https://www.kernel.org',
                   'checkbox_charte':'on'}
-    data = urllib.urlencode(parameters)
+    data = urllib.parse.urlencode(parameters).encode('ascii')
 
     # Create and send http request
-    request = urllib2.Request(captivePortailUrl,data)
-    httpResponse = urllib2.urlopen(request)
+    request = urllib.request.Request(captivePortailUrl,data)
+    httpResponse = urllib.request.urlopen(request)
 
-    htmlResponse = httpResponse.read()
+    htmlResponse = httpResponse.read().decode('ascii')
 
     # Search for the disconnection token and return it
     tokenExtractor = re.compile(r"NAME=\"logout_id\" TYPE=\"hidden\" "\
@@ -38,12 +37,12 @@ def connect(username, password):
 def disconnect(disconnectionToken):
     parameters = {'logout_id':disconnectionToken,
                   'logout':'Deconnection'}
-    data = urllib.urlencode(parameters)
+    data = urllib.parse.urlencode(parameters).encode('ascii')
 
     # Create and send http request
-    request = urllib2.Request(captivePortailUrl,data)
-    httpResponse = urllib2.urlopen(request)
-    htmlResponse = httpResponse.read()
+    request = urllib.request.Request(captivePortailUrl,data)
+    httpResponse = urllib.request.urlopen(request)
+    htmlResponse = httpResponse.read().decode('ascii')
 
     responseChecker = re.compile("You have been disconnected.")
 
