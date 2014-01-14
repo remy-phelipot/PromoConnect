@@ -28,7 +28,7 @@ def connect(username, password):
     matchResult = tokenExtractor.search(htmlResponse)
 
     if(matchResult != None and len(matchResult.groups()) > 0):
-        return matchResult
+        return matchResult.groups()[0]
     else:
         raise RuntimeError("Cannot match HTML response. "\
                            "Maybe username/password are wrong,"\
@@ -36,22 +36,22 @@ def connect(username, password):
 
 # Perform the disconnection process
 def disconnect(disconnectionToken):
-	parameters = {'logout_id':disconnectionToken,
-			      'logout':'Deconnection'}
-	data = urllib.urlencode(parameters)
-	
-	# Create and send http request
-	request = urllib2.Request(captivePortailUrl,data)
-	httpResponse = urllib2.urlopen(request)
-	htmlResponse = httpResponse.read()
-	
-	responseChecker = re.compile("You have been disconnected.")
+    parameters = {'logout_id':disconnectionToken,
+                  'logout':'Deconnection'}
+    data = urllib.urlencode(parameters)
 
-	if(responseChecker.search(htmlResponse) == None):
-		raise RuntimeError("Cannot match HTML response. "\
+    # Create and send http request
+    request = urllib2.Request(captivePortailUrl,data)
+    httpResponse = urllib2.urlopen(request)
+    htmlResponse = httpResponse.read()
+
+    responseChecker = re.compile("You have been disconnected.")
+
+    if(responseChecker.search(htmlResponse) == None):
+        raise RuntimeError("Cannot match HTML response. "\
                            "Maybe username/password are wrong,"\
                            " or login page/response have changed")
-    
+
 if __name__ == '__main__':
     token = connect('username','password')
     disconnect(token)
