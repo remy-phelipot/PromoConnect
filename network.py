@@ -34,9 +34,24 @@ def connect(username, password):
                            "Maybe username/password are wrong,"\
                            " or login page/response have changed")
 
-def disconnect(username, password):
+# Perform the disconnection process
+def disconnect(disconnectionToken):
+	parameters = {'logout_id':disconnectionToken,
+			      'logout':'Deconnection'}
+	data = urllib.urlencode(parameters)
+	
+	# Create and send http request
+	request = urllib2.Request(captivePortailUrl,data)
+	httpResponse = urllib2.urlopen(request)
+	htmlResponse = httpResponse.read()
+	
+	responseChecker = re.compile("You have been disconnected.")
 
-    pass
-
+	if(responseChecker.search(htmlResponse) == None):
+		raise RuntimeError("Cannot match HTML response. "\
+                           "Maybe username/password are wrong,"\
+                           " or login page/response have changed")
+    
 if __name__ == '__main__':
-    connect('username','password')
+    token = connect('username','password')
+    disconnect(token)
