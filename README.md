@@ -1,8 +1,8 @@
 PromoHack
 =========
 
-This script aims to automatically connect to the promo network.
-You can also use the following command (associated with a cron job):
+This script aims to automatically connect the promo network with a fancy gui.
+You can also use the following command associated with a cron job:
 
 ```bash
 curl -k -X POST -m 5 -d accept='Connexion'\
