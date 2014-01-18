@@ -21,6 +21,7 @@ class Controller(QObject):
                                            self.password)
         self.lastUpdate = time.strftime("%c")
         self.connected = True
+        self.networkUpdate.emit(self.lastUpdate)
 
     def performDisconnect(self):
         self.stopAutomaticConnection()
@@ -38,7 +39,6 @@ class Controller(QObject):
     def connectLoop(self):
         try:
             self.performConnect()
-            self.networkUpdate.emit(self.lastUpdate)
             self.connectionTimer = threading.Timer(self.refreshDuration*60,
                                                    self.connectLoop)
             self.connectionTimer.start()

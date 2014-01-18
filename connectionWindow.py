@@ -74,7 +74,7 @@ class ConnectionWindow(QDialog):
 
         self.setWindowTitle("PromoHack")
         self.setWindowIcon(QIcon(":/ressources/icon.ico"))
-        
+
         self.resizable = False
         self.mainLayout = QVBoxLayout(self)
         self.setLayout(self.mainLayout)
@@ -85,6 +85,7 @@ class ConnectionWindow(QDialog):
         self.quitButton = QPushButton(self.tr("&Quit"),self)
         self.connectButton = QPushButton(self.tr("&Connect"),self)
         self.disconnectButton = QPushButton(self.tr("&Disconnect"),self)
+        self.forceButton = QPushButton(self.tr("&Force!"),self)
 
         self.buttonLayout = QHBoxLayout(self)
         self.buttonLayout.addWidget(self.quitButton)
@@ -104,6 +105,7 @@ class ConnectionWindow(QDialog):
         self.quitButton.clicked.connect(self.onQuitAction)
         self.connectButton.clicked.connect(self.onConnectAction)
         self.disconnectButton.clicked.connect(self.onDisconnectAction)
+        self.forceButton.clicked.connect(self.forceConnection)
 
         controller.networkUpdate.connect(self.onNetworkStateUpdate)
         controller.connectionError.connect(self.onConnectionError)
@@ -112,23 +114,29 @@ class ConnectionWindow(QDialog):
         if self.controller.isConnected():
             self.connectButton.setEnabled(False)
             self.disconnectButton.setEnabled(True)
+            self.forceButton.setEnabled(True)
             self.connectionForm.hide()
             self.connectButton.hide()
             self.mainLayout.insertWidget(0,self.informationWidget)
+            self.buttonLayout.insertWidget(0,self.forceButton)
             self.buttonLayout.insertWidget(0,self.disconnectButton)
             self.mainLayout.removeWidget(self.connectionForm)
             self.buttonLayout.removeWidget(self.connectButton)
             self.informationWidget.show()
             self.disconnectButton.show()
+            self.forceButton.show()
         else:
             self.connectButton.setEnabled(True)
             self.disconnectButton.setEnabled(False)
+            self.forceButton.setEnabled(False)
             self.informationWidget.hide()
             self.disconnectButton.hide()
+            self.forceButton.hide()
             self.mainLayout.insertWidget(0,self.connectionForm)
             self.buttonLayout.insertWidget(0,self.connectButton)
             self.mainLayout.removeWidget(self.informationWidget)
             self.buttonLayout.removeWidget(self.disconnectButton)
+            self.buttonLayout.removeWidget(self.forceButton)
             self.connectionForm.show()
             self.connectButton.show()
 
@@ -159,6 +167,9 @@ class ConnectionWindow(QDialog):
         msgBox.setText(message)
         msgBox.exec_()
         self.connectButton.setEnabled(True)
+
+    def forceConnection(self):
+        self.controller.performConnect()
 
     def onSystrayActivated(self):
         self.setVisible(not self.isVisible())
