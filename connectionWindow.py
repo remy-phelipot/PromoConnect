@@ -88,7 +88,7 @@ class ConnectionWindow(QDialog):
 
         self.mainLayout.addLayout(self.buttonLayout)
 
-        self.systray = QSystemTrayIcon(self)
+        self.systray = QSystemTrayIcon(QIcon("icon.png"),self)
         self.systray.activated.connect(self.onSystrayActivated)
         self.systray.show()
 
