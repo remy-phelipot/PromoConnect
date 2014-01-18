@@ -2,6 +2,7 @@ import sys
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+import qrc_images
 
 class InformationWidget(QWidget):
     def __init__(self,controller,parent=None):
@@ -88,7 +89,7 @@ class ConnectionWindow(QDialog):
 
         self.mainLayout.addLayout(self.buttonLayout)
 
-        self.systray = QSystemTrayIcon(QIcon("icon.png"),self)
+        self.systray = QSystemTrayIcon(QIcon(":/ressources/icon.png"),self)
         self.systray.activated.connect(self.onSystrayActivated)
         self.systray.show()
 

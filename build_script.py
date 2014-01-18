@@ -1,8 +1,8 @@
 import sys
 from cx_Freeze import setup, Executable
 
-build_exe_options = {}
-
+build_exe_options = {"icon":"ressources/icon.ico"}
+					 
 base = None
 if sys.platform == "win32":
     base = "Win32GUI"
@@ -11,4 +11,7 @@ setup(  name = "PromoHack",
         version = "0.1",
         description = "Connect to the Promolo network",
         options = {"build_exe": build_exe_options},
-        executables = [Executable("promoHack.py",base=base)])
+        executables = [Executable("promoHack.py",
+					              shortcutName="PromoloHack",
+								  shortcutDir="DesktopFolder",
+					              base=base)])
