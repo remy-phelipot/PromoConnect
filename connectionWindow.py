@@ -73,6 +73,8 @@ class ConnectionWindow(QDialog):
         self.controller = controller
 
         self.setWindowTitle("PromoHack")
+        self.setWindowIcon(QIcon(":/ressources/icon.ico"))
+        
         self.resizable = False
         self.mainLayout = QVBoxLayout(self)
         self.setLayout(self.mainLayout)
