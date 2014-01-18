@@ -2,83 +2,171 @@ import sys
 from PySide.QtCore import *
 from PySide.QtGui import *
 
+
+class InformationWidget(QWidget):
+    def __init__(self,controller,parent=None):
+        super(InformationWidget,self).__init__(parent)
+        self.controller = controller
+        # Create UI components
+        self.mainLayout = QFormLayout(self)
+        self.setLayout(self.mainLayout)
+        self.tokenIdLabel = QLabel(self)
+        self.lastUpdate = QLabel(self)
+
+        self.timeSpinBox = QSpinBox(self)
+        self.timeSpinBox.setValue(self.controller.refreshDuration)
+        self.timeSpinBox.setMinimum(1)
+
+        self.mainLayout.addRow(self.tr("Last connection : "), self.lastUpdate)
+        self.mainLayout.addRow(self.tr("Disconnection token id : "), self.tokenIdLabel)
+        self.mainLayout.addRow(self.tr("&Update interval (minutes):"), self.timeSpinBox)
+
+        controller.networkUpdate.connect(self.updateLastUpdateDate)
+        self.timeSpinBox.valueChanged.connect(self.updateRefreshInterval)
+
+    def updateLastUpdateDate(self, date):
+        lastUpdateText = date
+        tokenText = self.controller.disconnectionTokken
+        self.lastUpdate.setText(lastUpdateText)
+        self.tokenIdLabel.setText(tokenText)
+
+    def updateRefreshInterval(self,value):
+        self.controller.refreshDuration = value
+
+class ConnectionFormWidget(QWidget):
+    informationsChanged = Signal(str,str)
+    def __init__(self,parent=None):
+        super(ConnectionFormWidget,self).__init__(parent)
+
+        # Create UI components
+        self.usernameField = QLineEdit()
+        self.passwordField = QLineEdit()
+        self.passwordField.setEchoMode(QLineEdit.Password)
+
+        formLayout = QFormLayout(self)
+        self.setLayout(formLayout)
+
+        formLayout.addRow(self.tr("&Username:"), self.usernameField)
+        formLayout.addRow(self.tr("&Password:"), self.passwordField)
+
+        self.usernameField.textChanged.connect(self.onInformationsChanged)
+        self.passwordField.textChanged.connect(self.onInformationsChanged)
+
+    def onInformationsChanged(self):
+        username = self.usernameField.text()
+        password = self.passwordField.text()
+        self.informationsChanged.emit(username,password)
+
+    def checkInformations(self):
+        username = self.usernameField.text()
+        password = self.passwordField.text()
+        return len(username) > 0 and len(password)
+
+    def clear(self):
+        self.usernameField.setText("")
+        self.passwordField.setText("")
+
 class ConnectionWindow(QDialog):
     def __init__(self, controller, parent=None):
         super(ConnectionWindow, self).__init__(parent)
-        self.setWindowTitle("Connection")
-        self.buildConnectionUI()
-        self.resizable = False
         self.controller = controller
 
-    def buildConnectionUI(self):
-        mainLayout = QVBoxLayout()
+        self.setWindowTitle("PromoHack")
+        self.resizable = False
+        self.mainLayout = QVBoxLayout(self)
+        self.setLayout(self.mainLayout)
 
-        self.userNameField = QLineEdit()
-        self.passwordField = QLineEdit()
+        self.informationWidget = InformationWidget(controller,self)
+        self.connectionForm = ConnectionFormWidget(self)
 
-        formLayout = QFormLayout()
-        formLayout.addRow(self.tr("&Username:"), self.userNameField)
-        formLayout.addRow(self.tr("&Password:"), self.passwordField)
+        self.quitButton = QPushButton(self.tr("&Quit"),self)
+        self.connectButton = QPushButton(self.tr("&Connect"),self)
+        self.disconnectButton = QPushButton(self.tr("&Disconnect"),self)
 
-        buttonLayout = QHBoxLayout()
-        self.connectButton = QPushButton("Connect", self)
-        self.quitButton = QPushButton("Quit", self)
+        self.buttonLayout = QHBoxLayout(self)
+        self.buttonLayout.addWidget(self.quitButton)
 
-        self.connectButton.setEnabled(False)
+        self.mainLayout.addLayout(self.buttonLayout)
 
-        buttonLayout.addWidget(self.connectButton)
-        buttonLayout.addWidget(self.quitButton)
-
-        mainLayout.addLayout(formLayout)
-        mainLayout.addLayout(buttonLayout)
-        
-        #systray
         self.systray = QSystemTrayIcon(self)
+        self.systray.activated.connect(self.onSystrayActivated)
         self.systray.show()
-        self.systray.setToolTip("Last connection : date")
 
-        self.setLayout(mainLayout)
+        self.readyToQuit = False
 
-        self.quitButton.clicked.connect(self.quitButtonCallback)
-        self.connectButton.clicked.connect(self.connectButtonCallback)
-        self.userNameField.textChanged.connect(self.fieldsChanged)
-        self.passwordField.textChanged.connect(self.fieldsChanged)
+        self.doLayout()
+        self.onFormInformationsChanged("","")
 
+        self.connectionForm.informationsChanged.connect(self.onFormInformationsChanged)
+        self.quitButton.clicked.connect(self.onQuitAction)
+        self.connectButton.clicked.connect(self.onConnectAction)
+        self.disconnectButton.clicked.connect(self.onDisconnectAction)
 
-    def connectButtonCallback(self):
-        username = self.userNameField.text()
-        password = self.passwordField.text()
-        self.controller.username = username
-        self.controller.password = password
+        controller.networkUpdate.connect(self.onNetworkStateUpdate)
+        controller.connectionError.connect(self.onConnectionError)
 
-        try:
-            self.controller.connect()
-        except Exception as e:
-            msgBox = QMessageBox(self)
-            msgBox.setIcon(QMessageBox.Critical)
-            msgBox.setText(str(e))
-            msgBox.exec_()
-
-    def quitButtonCallback(self):
-        self.close()
-
-    def fieldsChanged(self):
-        username = self.userNameField.text()
-        password = self.passwordField.text()
-
-        if(len(username) == 0 or len(password) == 0):
+    def doLayout(self):
+        if self.controller.isConnected():
             self.connectButton.setEnabled(False)
+            self.disconnectButton.setEnabled(True)
+            self.connectionForm.hide()
+            self.connectButton.hide()
+            self.mainLayout.insertWidget(0,self.informationWidget)
+            self.buttonLayout.insertWidget(0,self.disconnectButton)
+            self.mainLayout.removeWidget(self.connectionForm)
+            self.buttonLayout.removeWidget(self.connectButton)
+            self.informationWidget.show()
+            self.disconnectButton.show()
         else:
             self.connectButton.setEnabled(True)
+            self.disconnectButton.setEnabled(False)
+            self.informationWidget.hide()
+            self.disconnectButton.hide()
+            self.mainLayout.insertWidget(0,self.connectionForm)
+            self.buttonLayout.insertWidget(0,self.connectButton)
+            self.mainLayout.removeWidget(self.informationWidget)
+            self.buttonLayout.removeWidget(self.disconnectButton)
+            self.connectionForm.show()
+            self.connectButton.show()
 
+    def onFormInformationsChanged(self,username,password):
+        valid = self.connectionForm.checkInformations()
+        self.connectButton.setEnabled(valid)
+        if valid:
+            self.controller.username = username
+            self.controller.password = password
 
-if __name__ == '__main__':
-    # Create the Qt Application
-    app = QApplication(sys.argv)
+    def onQuitAction(self):
+        self.readyToQuit = True
+        self.controller.stopAutomaticConnection()
+        self.close()
 
-    # Create and show the form
-    form = ConnectionWindow()
-    form.show()
+    def onConnectAction(self):
+        self.connectButton.setEnabled(False)
+        self.controller.startAutomaticConnection()
 
-    # Run the main Qt loop
-    sys.exit(app.exec_())
+    def onDisconnectAction(self):
+        self.disconnectButton.setEnabled(False)
+        self.controller.stopAutomaticConnection()
+        self.controller.performDisconnect()
+        self.doLayout()
+
+    def onConnectionError(self,message):
+        msgBox = QMessageBox(self)
+        msgBox.setText(message)
+        msgBox.exec_()
+        self.connectButton.setEnabled(True)
+
+    def onSystrayActivated(self):
+        self.setVisible(not self.isVisible())
+
+    def closeEvent(self, event):
+        if not self.readyToQuit:
+            event.ignore()
+            self.hide()
+        else:
+            event.accept()
+
+    @Slot(str)
+    def onNetworkStateUpdate(self,date):
+        self.doLayout()

@@ -3,7 +3,7 @@ from PySide.QtCore import *
 from PySide.QtGui import *
 
 from connectionWindow import ConnectionWindow
-from controller import Controller 
+from controller import Controller
 
 if __name__ == '__main__':
     controller = Controller()
