@@ -12,14 +12,20 @@ curl -k -X POST -m 5 -d accept='Connexion'\
                      -d checkbox_charte='on'\
                      'https://portail-promologis-lan.insa-toulouse.fr:8001'
 ```
-## Installation
-- Download the installer from the "dist" folder of the project
-- Launch the installer and that's it!
+## Requirements
+- Python 3.3
+- Pyside 1.2.1
+- Cx_freeze for python3
 
 ## How to build
-### Requirements
-- Python 3.3
-- Pyside 1.2.1 or newer
-- Cx_freeze
+- Generate the qrc_images.py file with the following command : 
 
-### Step-by-step instructions
+```bash
+pyside-rcc -py3 images.qrc -o qrc_images.py
+```
+- Launch the build command depending on your os:
+
+```bash
+python3.3 build_script.py build
+python3.3 build_script.py bdist_msi
+```
