@@ -1,7 +1,9 @@
 import sys
 from cx_Freeze import setup, Executable
 
-build_exe_options = {"icon":"ressources/icon.ico"}
+build_exe_options = {"icon":"ressources/icon.ico",
+                     "optimize":2,
+					 "compressed":True}
 					 
 base = None
 if sys.platform == "win32":
@@ -14,4 +16,5 @@ setup(  name = "PromoHack",
         executables = [Executable("promoHack.py",
 					              shortcutName="PromoloHack",
 								  shortcutDir="DesktopFolder",
-					              base=base)])
+					              base=base,
+								  compress=True)])
