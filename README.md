@@ -1,4 +1,4 @@
-PromoHack
+PromoConnect
 =========
 
 This script aims to automatically connect the network with a fancy gui.

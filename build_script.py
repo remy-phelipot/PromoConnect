@@ -10,7 +10,7 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-setup(  name = "PromoHack",
+setup(  name = "PromoConnect",
         version = "0.1",
         description = "Connect to the Promo network",
         options = {"build_exe": build_exe_options},
@@ -18,5 +18,4 @@ setup(  name = "PromoHack",
                                   shortcutName="PromoConnect",
                                   shortcutDir="DesktopFolder",
                                   base=base,
-                                  compress=True)
-                                  ])
+                                  compress=True)])
