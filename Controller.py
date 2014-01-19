@@ -3,7 +3,8 @@ from Network import *
 import time, threading
 
 class Controller(QObject):
-    networkUpdate = Signal(str)
+    connected = Signal()
+    disconnected = Signal()
     connectionError = Signal(str)
 
     def __init__(self):
@@ -11,43 +12,34 @@ class Controller(QObject):
         self.disconnectionTokken = ''
         self.username = ''
         self.password = ''
-        self.refreshDuration = 60 # 60 minutes
+        self.connectionInterval = 60
         self.lastUpdate = "never"
         self.connectionTimer = None
-        self.connected = False
+        self.isConnected = False
 
     def performConnect(self):
         self.disconnectionTokken = connect(self.username,
                                            self.password)
         self.lastUpdate = time.strftime("%c")
-        self.connected = True
-        self.networkUpdate.emit(self.lastUpdate)
+        self.isConnected = True
+        self.connected.emit()
 
     def performDisconnect(self):
         self.stopAutomaticConnection()
         disconnect(self.disconnectionTokken)
-        self.connected = False
+        self.isConnected = False
+        self.disconnected.emit()
 
     def startAutomaticConnection(self):
-        self.connectLoop()
+        try:
+            self.performConnect()
+            self.connectionTimer = threading.Timer(self.connectionInterval*60,
+                                                   self.startAutomaticConnection)
+            self.connectionTimer.start()
+        except Exception as e:
+            self.connectionError.emit(str(e))
 
     def stopAutomaticConnection(self):
         if(self.connectionTimer != None):
             self.connectionTimer.cancel()
             self.connectionTimer = None
-
-    def connectLoop(self):
-        try:
-            self.performConnect()
-            self.connectionTimer = threading.Timer(self.refreshDuration*60,
-                                                   self.connectLoop)
-            self.connectionTimer.start()
-        except Exception as e:
-            self.connectionError.emit(str(e))
-
-
-    def getLastUpdate(self):
-        return self.lastUpdate
-
-    def isConnected(self):
-        return self.connected

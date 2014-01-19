@@ -18,5 +18,4 @@ setup(  name = "PromoHack",
                                   shortcutName="PromoConnect",
                                   shortcutDir="DesktopFolder",
                                   base=base,
-                                  compress=True)
-                                  ])
+                                  compress=True)])

@@ -11,7 +11,7 @@ if __name__ == '__main__':
     # Create the Qt Application
     app = QApplication(sys.argv)
 
-    # Create and show the form
+    # Create and show the window
     form = ConnectionWindow(controller)
     form.show()
 

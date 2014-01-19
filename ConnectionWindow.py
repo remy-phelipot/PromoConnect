@@ -1,9 +1,10 @@
-import sys
+import sys,threading
 from PySide.QtCore import *
 from PySide.QtGui import *
 
 import qrc_images
 
+# Display connection informations
 class InformationWidget(QWidget):
     def __init__(self,controller,parent=None):
         super(InformationWidget,self).__init__(parent)
@@ -15,25 +16,26 @@ class InformationWidget(QWidget):
         self.lastUpdate = QLabel(self)
 
         self.timeSpinBox = QSpinBox(self)
-        self.timeSpinBox.setValue(self.controller.refreshDuration)
+        self.timeSpinBox.setValue(self.controller.connectionInterval)
         self.timeSpinBox.setMinimum(1)
 
         self.mainLayout.addRow(self.tr("Last connection : "), self.lastUpdate)
         self.mainLayout.addRow(self.tr("Disconnection token id : "), self.tokenIdLabel)
         self.mainLayout.addRow(self.tr("&Update interval (minutes):"), self.timeSpinBox)
 
-        controller.networkUpdate.connect(self.updateLastUpdateDate)
+        controller.connected.connect(self.updateLastUpdateDate)
         self.timeSpinBox.valueChanged.connect(self.updateRefreshInterval)
 
-    def updateLastUpdateDate(self, date):
-        lastUpdateText = date
+    def updateLastUpdateDate(self):
+        lastUpdateText = self.controller.lastUpdate
         tokenText = self.controller.disconnectionTokken
         self.lastUpdate.setText(lastUpdateText)
         self.tokenIdLabel.setText(tokenText)
 
     def updateRefreshInterval(self,value):
-        self.controller.refreshDuration = value
+        self.controller.connectionInterval = value
 
+# Allow user to enter his informations
 class ConnectionFormWidget(QWidget):
     informationsChanged = Signal(str,str)
     def __init__(self,parent=None):
@@ -67,6 +69,7 @@ class ConnectionFormWidget(QWidget):
         self.usernameField.setText("")
         self.passwordField.setText("")
 
+# Main window
 class ConnectionWindow(QDialog):
     def __init__(self, controller, parent=None):
         super(ConnectionWindow, self).__init__(parent)
@@ -93,7 +96,7 @@ class ConnectionWindow(QDialog):
         self.mainLayout.addLayout(self.buttonLayout)
 
         self.systray = QSystemTrayIcon(QIcon(":/ressources/icon.png"),self)
-        self.systray.activated.connect(self.onSystrayActivated)
+        self.systray.activated.connect(lambda:self.setVisible(not self.isVisible()))
         self.systray.show()
 
         self.readyToQuit = False
@@ -107,11 +110,12 @@ class ConnectionWindow(QDialog):
         self.disconnectButton.clicked.connect(self.onDisconnectAction)
         self.forceButton.clicked.connect(self.forceConnection)
 
-        controller.networkUpdate.connect(self.onNetworkStateUpdate)
+        controller.connected.connect(self.doLayout)
+        controller.disconnected.connect(self.doLayout)
         controller.connectionError.connect(self.onConnectionError)
 
     def doLayout(self):
-        if self.controller.isConnected():
+        if self.controller.isConnected:
             self.connectButton.setEnabled(False)
             self.disconnectButton.setEnabled(True)
             self.forceButton.setEnabled(True)
@@ -154,13 +158,14 @@ class ConnectionWindow(QDialog):
 
     def onConnectAction(self):
         self.connectButton.setEnabled(False)
-        self.controller.startAutomaticConnection()
+        t = threading.Thread(target=self.controller.startAutomaticConnection)
+        t.start()
 
     def onDisconnectAction(self):
         self.disconnectButton.setEnabled(False)
         self.controller.stopAutomaticConnection()
-        self.controller.performDisconnect()
-        self.doLayout()
+        t = threading.Thread(target=self.controller.performDisconnect)
+        t.start()
 
     def onConnectionError(self,message):
         msgBox = QMessageBox(self)
@@ -169,10 +174,8 @@ class ConnectionWindow(QDialog):
         self.connectButton.setEnabled(True)
 
     def forceConnection(self):
-        self.controller.performConnect()
-
-    def onSystrayActivated(self):
-        self.setVisible(not self.isVisible())
+        t = threading.Thread(target=self.controller.performConnect)
+        t.start()
 
     def closeEvent(self, event):
         if not self.readyToQuit:
@@ -180,7 +183,3 @@ class ConnectionWindow(QDialog):
             self.hide()
         else:
             event.accept()
-
-    @Slot(str)
-    def onNetworkStateUpdate(self,date):
-        self.doLayout()

@@ -48,8 +48,8 @@ def disconnect(disconnectionToken):
 
     if(responseChecker.search(htmlResponse) == None):
         raise RuntimeError("Cannot match HTML response. "\
-                           "Maybe username/password are wrong,"\
-                           " or login page/response have changed")
+                           "Maybe disconnection web page has changed"\
+                           " or the token id was not correct")
 
 if __name__ == '__main__':
     token = connect('username','password')
