@@ -11,7 +11,7 @@ if sys.platform == "win32":
     base = "Win32GUI"
 
 setup(  name = "PromoConnect",
-        version = "0.1",
+        version = "0.2",
         description = "Connect to the Promo network",
         options = {"build_exe": build_exe_options},
         executables = [Executable("PromoConnect.py",
