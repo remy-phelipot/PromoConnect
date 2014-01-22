@@ -33,7 +33,7 @@ class InformationWidget(QWidget):
         self.tokenIdLabel.setText(tokenText)
 
     def updateRefreshInterval(self,value):
-        self.controller.connectionInterval = value
+        self.controller.changeIntervalTime(value)
 
 # Allow user to enter his informations
 class ConnectionFormWidget(QWidget):
