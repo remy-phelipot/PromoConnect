@@ -54,6 +54,8 @@ class ConnectionFormWidget(QWidget):
 
         self.usernameField.textChanged.connect(self.onInformationsChanged)
         self.passwordField.textChanged.connect(self.onInformationsChanged)
+        self.usernameField.returnPressed.connect(parent.connectButton.click)
+        self.passwordField.returnPressed.connect(parent.connectButton.click)
 
     def onInformationsChanged(self):
         username = self.usernameField.text()
@@ -82,13 +84,13 @@ class ConnectionWindow(QDialog):
         self.mainLayout = QVBoxLayout(self)
         self.setLayout(self.mainLayout)
 
-        self.informationWidget = InformationWidget(controller,self)
-        self.connectionForm = ConnectionFormWidget(self)
-
         self.quitButton = QPushButton(self.tr("&Quit"),self)
         self.connectButton = QPushButton(self.tr("&Connect"),self)
         self.disconnectButton = QPushButton(self.tr("&Disconnect"),self)
         self.forceButton = QPushButton(self.tr("&Force!"),self)
+
+        self.informationWidget = InformationWidget(controller,self)
+        self.connectionForm = ConnectionFormWidget(self)
 
         self.buttonLayout = QHBoxLayout(self)
         self.buttonLayout.addWidget(self.quitButton)
@@ -129,6 +131,7 @@ class ConnectionWindow(QDialog):
             self.informationWidget.show()
             self.disconnectButton.show()
             self.forceButton.show()
+            self.disconnectButton.setFocus()       
         else:
             self.connectButton.setEnabled(True)
             self.disconnectButton.setEnabled(False)
@@ -143,6 +146,7 @@ class ConnectionWindow(QDialog):
             self.buttonLayout.removeWidget(self.forceButton)
             self.connectionForm.show()
             self.connectButton.show()
+            self.connectButton.setFocus()       
 
     def onFormInformationsChanged(self,username,password):
         valid = self.connectionForm.checkInformations()
