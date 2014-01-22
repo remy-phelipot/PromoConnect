@@ -12,7 +12,7 @@ class Controller(QObject):
         self.disconnectionTokken = ''
         self.username = ''
         self.password = ''
-        self.connectionInterval = 60
+        self.connectionInterval = 1
         self.lastUpdate = "never"
         self.connectionTimer = None
         self.isConnected = False
