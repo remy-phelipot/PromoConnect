@@ -57,6 +57,8 @@ class ConnectionFormWidget(QWidget):
         self.usernameField.returnPressed.connect(parent.connectButton.click)
         self.passwordField.returnPressed.connect(parent.connectButton.click)
 
+        self.clear()
+
     def onInformationsChanged(self):
         username = self.usernameField.text()
         password = self.passwordField.text()
@@ -68,6 +70,7 @@ class ConnectionFormWidget(QWidget):
         return len(username) > 0 and len(password)
 
     def clear(self):
+        self.usernameField.setFocus()
         self.usernameField.setText("")
         self.passwordField.setText("")
 
@@ -131,7 +134,7 @@ class ConnectionWindow(QDialog):
             self.informationWidget.show()
             self.disconnectButton.show()
             self.forceButton.show()
-            self.disconnectButton.setFocus()       
+            self.disconnectButton.setDefault(True)
         else:
             self.connectButton.setEnabled(True)
             self.disconnectButton.setEnabled(False)
@@ -146,7 +149,7 @@ class ConnectionWindow(QDialog):
             self.buttonLayout.removeWidget(self.forceButton)
             self.connectionForm.show()
             self.connectButton.show()
-            self.connectButton.setFocus()       
+            self.connectButton.setDefault(True)
 
     def onFormInformationsChanged(self,username,password):
         valid = self.connectionForm.checkInformations()
