@@ -74,7 +74,11 @@ class ConnectionFormWidget(QWidget):
 # Main window
 class ConnectionWindow(QDialog):
     def __init__(self, controller, parent=None):
-        super(ConnectionWindow, self).__init__(parent)
+        super(ConnectionWindow, self).__init__(parent,
+					       (Qt.WindowCloseButtonHint |  
+					       Qt.WindowMinimizeButtonHint)
+					       & ~Qt.WindowMaximizeButtonHint
+					       & ~Qt.WindowContextHelpButtonHint)
         self.controller = controller
 
         self.setWindowTitle("PromoHack")
