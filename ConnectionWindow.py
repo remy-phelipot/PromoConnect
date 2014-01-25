@@ -78,10 +78,10 @@ class ConnectionFormWidget(QWidget):
 class ConnectionWindow(QDialog):
     def __init__(self, controller, parent=None):
         super(ConnectionWindow, self).__init__(parent,
-					       (Qt.WindowCloseButtonHint |  
-					       Qt.WindowMinimizeButtonHint)
+					       (Qt.WindowCloseButtonHint)
 					       & ~Qt.WindowMaximizeButtonHint
-					       & ~Qt.WindowContextHelpButtonHint)
+					       & ~Qt.WindowContextHelpButtonHint
+					       & ~Qt.WindowMinimized)
         self.controller = controller
 
         self.setWindowTitle("PromoHack")
@@ -91,7 +91,7 @@ class ConnectionWindow(QDialog):
         self.mainLayout = QVBoxLayout(self)
         self.setLayout(self.mainLayout)
 
-        self.quitButton = QPushButton(self.tr("&Quit"),self)
+        self.quitButton = QPushButton(self.tr("&Close"),self)
         self.connectButton = QPushButton(self.tr("&Connect"),self)
         self.disconnectButton = QPushButton(self.tr("&Disconnect"),self)
         self.forceButton = QPushButton(self.tr("&Force!"),self)
@@ -105,8 +105,7 @@ class ConnectionWindow(QDialog):
         self.mainLayout.addLayout(self.buttonLayout)
 
         self.systray = QSystemTrayIcon(QIcon(":/ressources/icon.png"),self)
-        self.systray.activated.connect(lambda:self.setVisible(not self.isVisible()))
-        self.systray.show()
+        self.systray.activated.connect(self.onShow)
 
         self.readyToQuit = False
 
@@ -114,7 +113,7 @@ class ConnectionWindow(QDialog):
         self.onFormInformationsChanged("","")
 
         self.connectionForm.informationsChanged.connect(self.onFormInformationsChanged)
-        self.quitButton.clicked.connect(self.onQuitAction)
+        self.quitButton.clicked.connect(self.onHide)
         self.connectButton.clicked.connect(self.onConnectAction)
         self.disconnectButton.clicked.connect(self.onDisconnectAction)
         self.forceButton.clicked.connect(self.forceConnection)
@@ -183,14 +182,19 @@ class ConnectionWindow(QDialog):
         msgBox.setText(message)
         msgBox.exec_()
         self.connectButton.setEnabled(True)
+        
+    def onShow(self):
+        self.systray.hide()
+        self.show()
+        
+    def onHide(self):
+        self.systray.show()
+        self.hide()
 
     def forceConnection(self):
         t = threading.Thread(target=self.controller.performConnect)
         t.start()
 
     def closeEvent(self, event):
-        if not self.readyToQuit:
-            event.ignore()
-            self.hide()
-        else:
-            event.accept()
+        self.onQuitAction()
+        event.accept()
